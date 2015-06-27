@@ -34,6 +34,7 @@ class DelimitedParagraphCardCreator
     output = words.map do |w|
       remaining_words = words - [w]
       d = dict[w]
+      raise "missing dictionary entry for word #{w}" if d.nil?
       {
         :word => w,
         :root => d[:root],
