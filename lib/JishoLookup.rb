@@ -7,9 +7,20 @@ require 'net/http/responses'
 
 class JishoLookup
 
+  def initialize()
+    @debug = false
+  end
+
+  attr_accessor :debug
+
+  def print_debug(s)
+    puts s.to_s if @debug
+  end
+  
   # Returns [word, reading, def'n] tuples that match the supplied
   # word.
   def get_base_rows(word, use_common_only)
+    print_debug("Search for #{word} (#{use_common_only ? 'common words only' : 'include uncommon'})")
     uri = "http://classic.jisho.org/words"
     params = { "jap" => word, "dict" => "edict" }
     params["common"] = "on" if use_common_only
@@ -24,6 +35,7 @@ class JishoLookup
     if (res.is_a?(Net::HTTPRedirection))
       match = res.body.match(/href="(.*?)"/i)
       url = match.captures[0]
+      print_debug("Redirecting to #{url}")
       res = Net::HTTP.get_response(URI(url))
     end
 
@@ -37,6 +49,7 @@ class JishoLookup
     if match = data.match(/\<span class="instead"\>(.*?)\<\/span\>/i)
       matchword = match.captures[0]
       root = matchword.dup
+      print_debug("Word root form: #{root}")
     end
 
     # Extract [word, reading, def'n] tuples that match root.
@@ -46,7 +59,14 @@ class JishoLookup
       map { |row| row.scan(/<td.*?>.*?<\/td>/m) }.
       map do |row|
       row.map { |el| el.gsub(/<.*?>/m, '').strip.gsub(/ +/, ' ') }
-    end.select { |a, b, c| a.strip == root.force_encoding("UTF-8").strip }
+    end
+    print_debug("Initial matches:\n" + rows.to_s)
+    
+    # In some cases, jisho doesn't output anything in the "word"
+    # column, e.g. for a hiragana-only search string.
+    rows.map! { |a, b, c| [(a == '' ? b : a), b, c] }
+    
+    rows.select! { |a, b, c| a.strip == root.force_encoding("UTF-8").strip }
 
     rows.map! do |a, b, c|
       culled = c.
@@ -66,6 +86,7 @@ class JishoLookup
   # word.  First searches in common words only, if none are returned,
   # searches in uncommon words.
   def get_rows(word)
+    print_debug "Getting rows for #{word}"
     rows = get_base_rows(word, true)
     rows = get_base_rows(word, false) if rows.size == 0
     rows
@@ -102,9 +123,9 @@ end
 if __FILE__ == $0
   puts "Command-line lookup"
   j = JishoLookup.new
+  j.debug = true
   w = ARGV[0]
   exit if w.nil?
-  puts j.get_rows(w).to_s
+
   puts j.lookup_entry(w).to_s
-  puts j.lookup_word(w).to_s
 end
