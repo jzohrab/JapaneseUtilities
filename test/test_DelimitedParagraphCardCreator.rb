@@ -98,13 +98,14 @@ class TestDelimitedParagraphCardCreator < Test::Unit::TestCase
 
 This is *C*。"
     settings = {
+      :field_delimiter => "; ",
       :preword => '<PRE>',
       :postword => '<POST>',
     }
     expected = [
-      "Aroot	Asound	Ameaning	<PRE>A<POST> is B。	Broot[Bsound]: Bmeaning",
-      "Broot	Bsound	Bmeaning	A is <PRE>B<POST>。	Aroot[Asound]: Ameaning",
-      "C	?	?	This is <PRE>C<POST>。	"
+      "Aroot; Asound; Ameaning; <PRE>A<POST> is B。; Broot[Bsound]: Bmeaning",
+      "Broot; Bsound; Bmeaning; A is <PRE>B<POST>。; Aroot[Asound]: Ameaning",
+      "C; ?; ?; This is <PRE>C<POST>。; "
     ]
     actual = @creator.generate_cards(para, @dummysource, settings)
     assert_equal(actual, expected)
@@ -115,7 +116,7 @@ This is *C*。"
     
     settings[:tag] = "some_tag"
     taggedactual = @creator.generate_cards(para, @dummysource, settings)
-    assert_equal(taggedactual, expected.map { |s| "#{s}	some_tag" }, "added a tag")
+    assert_equal(taggedactual, expected.map { |s| "#{s}; some_tag" }, "added a tag")
   end
 
   # test: "*A* is AB".  the A in the second word will be highlighted in the first sentence (false positive)

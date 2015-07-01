@@ -110,6 +110,7 @@ if options[:dictionary]
   puts dict.to_yaml
 else
   settings = {
+      :field_delimiter => "\t",
       :preword => "<font color=\"#ff0000\">",
       :postword => "</font>",
       :tag => options[:tag]

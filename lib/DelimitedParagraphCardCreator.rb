@@ -72,6 +72,7 @@ class DelimitedParagraphCardCreator
   # Given a paragraph, splits into sentences, and then generates card data for each.
   def generate_cards(para, lkp_src, settings = {})
     data = extract_card_data(para, lkp_src)
+    field_delimiter = settings[:field_delimiter] || "\t"
     preword = settings[:preword] || ''
     postword = settings[:postword] || ''
     tag = settings[:tag]
@@ -81,7 +82,7 @@ class DelimitedParagraphCardCreator
       sentence = d[:sentence].dup.gsub(d[:word], highlight)
       card = [d[:root], d[:pronounce], d[:mean], sentence, n.join("<br>")]
       card << tag if tag
-      card.join("\t")
+      card.join(field_delimiter)
     end
   end
 
