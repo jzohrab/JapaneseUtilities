@@ -118,7 +118,11 @@ This is *C*。"
     assert_equal(taggedactual, expected.map { |s| "#{s}	some_tag" }, "added a tag")
   end
 
-  # test: 2 sentences, additional words also marked in sentence
-  # test: 2 sentences, additional words marked in sentence, and even words that weren't marked if they match another sentence (exactly)
+  # test: "*A* is AB".  the A in the second word will be highlighted in the first sentence (false positive)
+  # test: "*A* is *AB*".  A in the second word will not be highlighted, since it's delimited already
+  # test: "*A* is C".  C is highlighted if it's in the source
+  # test: "*A* is CD".  CD is highlighted, not C, if the source contains both CD and C (matches longest word first)
+  # test: "*A* is CxDx".  CxDx is highlighted, if CxDx is present as a word
+  # test: "*A* is CrootDroot".  CrootDroot is highlighted, if CxDx is present as a word in the source
 end
 
