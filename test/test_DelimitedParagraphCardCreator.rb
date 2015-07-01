@@ -91,20 +91,18 @@ class TestDelimitedParagraphCardCreator < Test::Unit::TestCase
 
 
   def test_card_data_from_delimited_paras()
-    @dummysource.add_word("犬", "犬", "いぬ", "dog")
-    @dummysource.add_word("大きい", "大きい", "おおきい", "big")
-    @dummysource.add_word("猫", "猫", "ねこ", "cat")
-    @dummysource.add_word("走っている", "走る", "はしる", "To run")
+    @dummysource.add_word("A", "Aroot", "Asound", "Ameaning")
+    @dummysource.add_word("B", "Broot", "Bsound", "Bmeaning")
 
-    para = "*猫*が*走っている*。
+    para = "*A* is *B*。
 
-これは*本*です。"
+This is *C*。"
     actual = @creator.generate_cards(para, @dummysource)
 
     expected = [
-      "猫	ねこ	cat	<font color=\"#ff0000\">猫</font>が走っている。	走る[はしる]: To run",
-      "走る	はしる	To run	猫が<font color=\"#ff0000\">走っている</font>。	猫[ねこ]: cat",
-      "本	?	?	これは<font color=\"#ff0000\">本</font>です。	"
+      "Aroot	Asound	Ameaning	<font color=\"#ff0000\">A</font> is B。	Broot[Bsound]: Bmeaning",
+      "Broot	Bsound	Bmeaning	A is <font color=\"#ff0000\">B</font>。	Aroot[Asound]: Ameaning",
+      "C	?	?	This is <font color=\"#ff0000\">C</font>。	"
     ]
     assert_equal(actual, expected)
 
@@ -112,6 +110,8 @@ class TestDelimitedParagraphCardCreator < Test::Unit::TestCase
     taggedactual = @creator.generate_cards(para, @dummysource, "some_tag")
     assert_equal(taggedactual, taggedexpected, "added a tag")
   end
-  
+
+  # test: 2 sentences, additional words also marked in sentence
+  # test: 2 sentences, additional words marked in sentence, and even words that weren't marked if they match another sentence (exactly)
 end
 
