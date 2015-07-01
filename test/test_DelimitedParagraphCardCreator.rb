@@ -97,18 +97,25 @@ class TestDelimitedParagraphCardCreator < Test::Unit::TestCase
     para = "*A* is *B*。
 
 This is *C*。"
-    actual = @creator.generate_cards(para, @dummysource)
-
+    settings = {
+      :preword => '<PRE>',
+      :postword => '<POST>',
+    }
     expected = [
-      "Aroot	Asound	Ameaning	<font color=\"#ff0000\">A</font> is B。	Broot[Bsound]: Bmeaning",
-      "Broot	Bsound	Bmeaning	A is <font color=\"#ff0000\">B</font>。	Aroot[Asound]: Ameaning",
-      "C	?	?	This is <font color=\"#ff0000\">C</font>。	"
+      "Aroot	Asound	Ameaning	<PRE>A<POST> is B。	Broot[Bsound]: Bmeaning",
+      "Broot	Bsound	Bmeaning	A is <PRE>B<POST>。	Aroot[Asound]: Ameaning",
+      "C	?	?	This is <PRE>C<POST>。	"
     ]
+    actual = @creator.generate_cards(para, @dummysource, settings)
     assert_equal(actual, expected)
 
-    taggedexpected = expected.map { |s| "#{s}	some_tag" }
-    taggedactual = @creator.generate_cards(para, @dummysource, "some_tag")
-    assert_equal(taggedactual, taggedexpected, "added a tag")
+    settings[:tag] = nil
+    actual = @creator.generate_cards(para, @dummysource, settings)
+    assert_equal(actual, expected, "Nil tag, same as if nothing specified")
+    
+    settings[:tag] = "some_tag"
+    taggedactual = @creator.generate_cards(para, @dummysource, settings)
+    assert_equal(taggedactual, expected.map { |s| "#{s}	some_tag" }, "added a tag")
   end
 
   # test: 2 sentences, additional words also marked in sentence

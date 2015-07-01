@@ -109,6 +109,12 @@ if options[:dictionary]
   dict = c.get_dictionary(para, lkp)
   puts dict.to_yaml
 else
-  data = c.generate_cards(para, lkp, options[:tag])
+  settings = {
+      :preword => "<font color=\"#ff0000\">",
+      :postword => "</font>",
+      :tag => options[:tag]
+    }
+
+  data = c.generate_cards(para, lkp, settings)
   puts data
 end

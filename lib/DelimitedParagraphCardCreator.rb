@@ -70,12 +70,16 @@ class DelimitedParagraphCardCreator
   end
   
   # Given a paragraph, splits into sentences, and then generates card data for each.
-  def generate_cards(para, lkp_src, tag = nil)
+  def generate_cards(para, lkp_src, settings = {})
     data = extract_card_data(para, lkp_src)
+    preword = settings[:preword] || ''
+    postword = settings[:postword] || ''
+    tag = settings[:tag]
     data.map do |d|
       n = d[:notes].map { |a, b, c| format_note(a, b, c) }
-      highlighted = d[:sentence].dup.gsub(d[:word], "<font color=\"#ff0000\">#{d[:word]}</font>")
-      card = [d[:root], d[:pronounce], d[:mean], highlighted, n.join("<br>")]
+      highlight = "#{preword}#{d[:word]}#{postword}"
+      sentence = d[:sentence].dup.gsub(d[:word], highlight)
+      card = [d[:root], d[:pronounce], d[:mean], sentence, n.join("<br>")]
       card << tag if tag
       card.join("\t")
     end
