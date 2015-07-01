@@ -48,19 +48,18 @@ class DelimitedParagraphCardCreator
   end
 
   # Given a paragraph, extracts array of data for one or more cards.
-  def extract_card_data(para, lkp_src)
+  def extract_card_data(para, fullstop, lkp_src)
     dict = get_dictionary(para, lkp_src)
     data = []
-    self.extract_sentences(para).each do |s|
+    self.extract_sentences(para, fullstop).each do |s|
       data << self.create_cards_for_sentence(s, dict)
     end
     data.flatten
   end
   
   # Given a paragraph, extract the sentences.
-  # Para given as text, separates at "\n" or at fullstop.
-  def extract_sentences(p)
-    fullstop = "\u3002"
+  # Para given as text, separates at "\n" or at fullstop
+  def extract_sentences(p, fullstop = ".")
     p.split(/[#{fullstop}\n]/).map { |s| "#{s}#{fullstop}" }.delete_if { |s| s == fullstop }
   end
 
@@ -71,11 +70,13 @@ class DelimitedParagraphCardCreator
   
   # Given a paragraph, splits into sentences, and then generates card data for each.
   def generate_cards(para, lkp_src, settings = {})
-    data = extract_card_data(para, lkp_src)
+    fullstop = settings[:fullstop] || "."
     field_delimiter = settings[:field_delimiter] || "\t"
     preword = settings[:preword] || ''
     postword = settings[:postword] || ''
     tag = settings[:tag]
+
+    data = extract_card_data(para, fullstop, lkp_src)
     data.map do |d|
       n = d[:notes].map { |a, b, c| format_note(a, b, c) }
       highlight = "#{preword}#{d[:word]}#{postword}"

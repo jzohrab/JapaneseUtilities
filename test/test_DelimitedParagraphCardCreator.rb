@@ -39,14 +39,14 @@ class TestDelimitedParagraphCardCreator < Test::Unit::TestCase
   # Convert data structs to strings for testing
   def card_to_s(data)
     data.map do |d|
-      s = d[:sentence].gsub("。", "")
+      s = d[:sentence].gsub(".", "")
       n = d[:notes].map { |a| a.join("-") }.join(", ")
       "#{d[:root]}; #{d[:pronounce]}; #{d[:mean]}; #{s}; notes: #{n}"
     end.sort
   end
   
   def check_output(s, expected, msg)
-    actual = card_to_s(@creator.extract_card_data(s, @dummysource))
+    actual = card_to_s(@creator.extract_card_data(s, ".", @dummysource))
     assert_equal(expected.sort, actual, msg)
   end
   
@@ -71,10 +71,10 @@ class TestDelimitedParagraphCardCreator < Test::Unit::TestCase
   end
 
   def test_extract()
-    assert_equal(["何。","本。"], @creator.extract_sentences("何。本。"), "split")
-    assert_equal(["何,本。"], @creator.extract_sentences("何,本"), "as-is, fullstop added (assumes full sentence)")
-    assert_equal(["何。","本。"], @creator.extract_sentences("何\n本"), "split at CRLF")
-    assert_equal(["何。","本。"], @creator.extract_sentences("何。\n本。"), "split, no redundant split")
+    assert_equal(["A.", "B."], @creator.extract_sentences("A.B."), "split")
+    assert_equal(["A,B."], @creator.extract_sentences("A,B"), "as-is, fullstop added (assumes full sentence)")
+    assert_equal(["A.","B."], @creator.extract_sentences("A\nB"), "split at CRLF")
+    assert_equal(["A.","B."], @creator.extract_sentences("A.\nB."), "split, no redundant split")
   end
 
 
@@ -94,18 +94,19 @@ class TestDelimitedParagraphCardCreator < Test::Unit::TestCase
     @dummysource.add_word("A", "Aroot", "Asound", "Ameaning")
     @dummysource.add_word("B", "Broot", "Bsound", "Bmeaning")
 
-    para = "*A* is *B*。
+    para = "*A* is *B*.
 
-This is *C*。"
+This is *C*."
     settings = {
+      :fullstop => ".",
       :field_delimiter => "; ",
       :preword => '<PRE>',
       :postword => '<POST>',
     }
     expected = [
-      "Aroot; Asound; Ameaning; <PRE>A<POST> is B。; Broot[Bsound]: Bmeaning",
-      "Broot; Bsound; Bmeaning; A is <PRE>B<POST>。; Aroot[Asound]: Ameaning",
-      "C; ?; ?; This is <PRE>C<POST>。; "
+      "Aroot; Asound; Ameaning; <PRE>A<POST> is B.; Broot[Bsound]: Bmeaning",
+      "Broot; Bsound; Bmeaning; A is <PRE>B<POST>.; Aroot[Asound]: Ameaning",
+      "C; ?; ?; This is <PRE>C<POST>.; "
     ]
     actual = @creator.generate_cards(para, @dummysource, settings)
     assert_equal(actual, expected)
