@@ -70,8 +70,10 @@ class JishoLookup
     # original word passed in matches the reading (can happen when
     # hiragana word is sought which also has a kanji spelling).
     rows.select! do |a, b, c|
-      root_match = (a.strip == root.force_encoding("UTF-8").strip)
-      pronounce_match = (word == b.force_encoding("UTF-8").strip)
+      rfe = root.force_encoding("UTF-8").strip
+      bfe = b.force_encoding("UTF-8").strip
+      root_match = [a.strip, bfe].include?(rfe)
+      pronounce_match = (word == bfe)
       root_match || pronounce_match
     end
 
