@@ -65,8 +65,15 @@ class JishoLookup
     # In some cases, jisho doesn't output anything in the "word"
     # column, e.g. for a hiragana-only search string.
     rows.map! { |a, b, c| [(a == '' ? b : a), b, c] }
-    
-    rows.select! { |a, b, c| a.strip == root.force_encoding("UTF-8").strip }
+
+    # Get words where the kanji field matches the root, or where the
+    # original word passed in matches the reading (can happen when
+    # hiragana word is sought which also has a kanji spelling).
+    rows.select! do |a, b, c|
+      root_match = (a.strip == root.force_encoding("UTF-8").strip)
+      pronounce_match = (word == b.force_encoding("UTF-8").strip)
+      root_match || pronounce_match
+    end
 
     rows.map! do |a, b, c|
       culled = c.
@@ -102,7 +109,7 @@ class JishoLookup
     root = rows.map { |w, p, m| w }.uniq.join(", ")
     ret = { :root => root, :pronounce => "?", :meaning => "?" }
     if (rows.size != 0)
-      prons = rows.map { |w, p, m| p }.join(', ')
+      prons = rows.map { |w, p, m| p }.uniq.join(', ')
       meanings = rows.map { |w, p, m| m }.uniq.join('; ')
       ret = { :root => root, :pronounce => prons, :meaning => meanings }
     end
