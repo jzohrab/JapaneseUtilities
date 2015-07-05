@@ -52,6 +52,14 @@ class JishoLookup
       print_debug("Word root form: #{root}")
     end
 
+    # Sometimes jisho finds de-inflected words, says "search in plain
+    # form."
+    if match = data.match(/Search for this in plain form:.*?\<a.*?\>(.*?)\<\/a\>/i)
+      matchword = match.captures[0]
+      root = matchword.dup
+      print_debug("Plain root form: #{root}")
+    end
+    
     # Extract [word, reading, def'n] tuples that match root.
     rows =
       data.
