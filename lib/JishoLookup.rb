@@ -133,6 +133,33 @@ class JishoLookup
     [ h[:pronounce], h[:meaning] ]
   end
 
+  def build_hash(j, e)
+    { :japanese => j.gsub(/<.*?>/, "").strip.force_encoding("UTF-8"),
+      :english => e.strip }
+  end
+
+  # Returns sentences that match the supplied word.
+  # Returns array of hashes, [ {:japanese => '...', :english => '...'}, ... ]
+  def get_sentences(word)
+    print_debug("Get sentences for #{word}")
+    uri = "http://classic.jisho.org/sentences"
+    params = { "jap" => word }
+    uri = URI(uri)
+    uri.query = URI.encode_www_form(params)
+    res = Net::HTTP.get_response(uri)
+    data = res.body
+
+    rows = data.
+           scan(/<tr.*?class="(even|odd)".*?>(.*?)<\/tr>/m).
+           # Scan with two groups returns each group as an array entry: we only
+           # want the TR content, and not the "even/odd" class.
+           map { |a, b| b }.
+           # raw Japanese and English (with spaces, links, etc)
+           map { |s| s.scan(/<td.*?>(.*?)<\/td>/) }.
+           map { |j, e| build_hash(j[0], e[0]) }
+    rows
+  end
+  
 end
 
 
@@ -145,4 +172,5 @@ if __FILE__ == $0
   exit if w.nil?
 
   puts j.lookup_entry(w).to_s
+  puts j.get_sentences(w).to_s
 end
