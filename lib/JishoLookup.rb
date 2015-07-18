@@ -16,13 +16,15 @@ class JishoLookup
   def print_debug(s)
     puts s.to_s if @debug
   end
-  
+
   # Returns [word, reading, def'n] tuples that match the supplied
   # word.
   def get_base_rows(word, use_common_only)
     print_debug("Search for #{word} (#{use_common_only ? 'common words only' : 'include uncommon'})")
     uri = "http://classic.jisho.org/words"
-    params = { "jap" => word, "dict" => "edict" }
+    lang = "jap" # assumed
+    lang = "eng" if (word =~ /[A-Za-z]+/)
+    params = { lang => word, "dict" => "edict" }
     params["common"] = "on" if use_common_only
     uri = URI(uri)
     uri.query = URI.encode_www_form(params)
@@ -82,7 +84,8 @@ class JishoLookup
       bfe = b.force_encoding("UTF-8").strip
       root_match = [a.strip, bfe].include?(rfe)
       pronounce_match = (word == bfe)
-      root_match || pronounce_match
+      definition_match = (c =~ /#{word}/i)
+      root_match || pronounce_match || definition_match
     end
 
     rows.map! do |a, b, c|
@@ -173,4 +176,5 @@ if __FILE__ == $0
 
   puts j.lookup_entry(w).to_s
   puts j.get_sentences(w).to_s
+  puts j.get_rows(w).to_s
 end
